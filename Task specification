@@ -1,0 +1,28 @@
+The task is to use the ANSI C language to write a simple shell program - Micro shell. 
+This program should accept commands at the input and then perform actions according to their content. The shell should:
+
+Display a prompt in the form [{path}] $, where {path} is the path to the current working directory,
+
+Handle the cd command, working analogically to the one known from the bash shell,
+
+Handle the exit command, terminating the shell program,
+
+Gandle the help command, displaying on the screen information about the author of the program and the features it offers,
+
+Support two other, arbitrarily selected shell commands (this is for example about your own, simple, simple implementation of two commands)
+
+To take commands that refer to the scripts and programs found in the directories described by the value of the PATH environment variable 
+and allow these scripts and programs to be called with arguments.
+
+Print an error message when the command can not be interpreted correctly.
+
+In addition, 2 points are awarded for additional gadgets (depending on the complexity of the problem)
+E.g
+displaying the login of currently logged in user, 
+handling colors, 
+handling arguments in quotes,
+sensible handling of signals (eg Ctrl + Z), 
+handling command history, etc.
+
+
+The code should be put in one file named microshell.c

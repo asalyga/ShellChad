@@ -81,3 +81,65 @@ int     microshell_help(int argc, const char** argv);
 int     microshell_ls(int argc, const char** argv);
 int     microshell_mkdir(int argc, const char** argv);
 int     microshell_history(int argc, const char** argv);
+
+
+
+void* command_handlers[] = 
+{
+        // format: Nazwa komendy, funkcja komendy
+        "cd",       microshell_cd,
+        "exit",     microshell_exit,
+        "help",     microshell_help,
+        "ls",       microshell_ls,
+        "mkdir",    microshell_mkdir,
+        "history",  microshell_history
+};
+
+CONTEXT* context()
+{
+    static CONTEXT context;
+    return &context;
+}
+
+void wait_for_process(PROCESS* process)
+{
+    int     status;
+    pid_t   pid;
+    do {
+        pid = waitpid(WAIT_ANY, &status, WUNTRACED);
+        process->status = status;
+        if(WIFSTOPPED(status))
+            process->stopped = 1;
+        else
+            process->completed = 1;
+    } while (process->completed == 0 && process->stopped == 0);
+}
+
+void launch_foreground_process(PROCESS* process)
+{
+    switch ((process->pid = fork())) {
+        case 0:
+            if (setpgid(0, 0) < 0 && tcsetpgrp(STDIN_FILENO, getpgrp()) < 0) {
+                perror("");
+                exit(1);
+            }
+            signal(SIGINT,  SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
+            signal(SIGTSTP, SIG_DFL);
+            signal(SIGTTIN, SIG_DFL);
+            signal(SIGTTOU, SIG_DFL);
+            signal(SIGCHLD, SIG_DFL);
+            execvp(process->path, (char * const *)process->argv);
+            perror("execvp");
+            exit(1);
+        case -1:
+            exit(1);
+        default:    
+            setpgid(process->pid, process->pid);
+            tcsetpgrp(STDIN_FILENO, process->pid);
+            wait_for_process(process);
+            tcsetpgrp(STDIN_FILENO, getpgrp());
+            free(process->path);
+            break;
+    }
+}

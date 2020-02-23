@@ -190,3 +190,41 @@ char* expand_path(const char* path)
 
     return copy_string(path);
 }
+void swap_ptr(char** a, char** b)
+{
+    char* tmp = (*a);
+    (*a) = (*b);
+    (*b) = (tmp);
+}
+
+int microshell_cd(int argc, const char** argv)
+{
+    if (!argc)
+        return 0;
+
+    char* path = expand_path(argv[0]);
+
+
+    if (strcmp(path, "-") == 0) {
+        free(path);
+        if (chdir(context()->prev_cwd) < 0) {
+            MICROSHELL_ERROR("FATAL ERROR: cd: %s", strerror(errno))
+            exit(1);
+        }
+        swap_ptr(&context()->prev_cwd, &context()->cwd);
+        return 0;
+    }
+
+    if (chdir(path) < 0) {
+        MICROSHELL_ERROR("cd: %s", strerror(errno))
+        free(path);
+        return 1;
+    }
+    free(path);
+    free(context()->prev_cwd);
+    context()->prev_cwd = context()->cwd;
+    context()->cwd = getcwd(NULL, 0);
+    CHECK_ALLOCATION(context()->cwd)
+    return 0;
+}
+

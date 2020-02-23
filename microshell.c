@@ -143,3 +143,50 @@ void launch_foreground_process(PROCESS* process)
             break;
     }
 }
+char* path_concat(const char* a, const char* b)
+{
+
+
+    size_t n = strlen(a);
+    size_t m = strlen(b);
+
+
+    if ((!n || a[n-1] != '/') && (!m || b[0] != '/')) {
+
+        char* buff = malloc(n + m + 2);
+        CHECK_ALLOCATION(buff)
+        strcpy(buff, a);
+        buff[n] = '/';
+        strcpy(&buff[n+1], b);
+        return buff;
+    } else {
+
+        char* buff = malloc(n + m + 1);
+        CHECK_ALLOCATION(buff)
+        strcpy(buff, a);
+        strcpy(&buff[n], b);
+        return buff;
+    }
+}
+
+char* copy_string(const char* string)
+{
+    char* buff = malloc(strlen(string) + 1);
+    CHECK_ALLOCATION(buff)
+    strcpy(buff, string);
+    return buff;
+}
+
+
+char* expand_path(const char* path)
+{
+    if (strlen(path) == 1 && *path == '~') {
+        return copy_string(context()->home_dir);
+    }
+
+    if (strlen(path) > 1 && *path == '~') {
+        return path_concat(context()->home_dir, path + 1);
+    }
+
+    return copy_string(path);
+}

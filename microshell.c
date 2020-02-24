@@ -228,3 +228,52 @@ int microshell_cd(int argc, const char** argv)
     return 0;
 }
 
+int microshell_exit(int argc, const char** argv)
+{
+    free(context()->cwd);
+    free(context()->prev_cwd);
+    free(context()->paths);
+    free(context()->history);
+    free(context()->argv_buff);
+    free(context()->argv);
+    exit(0);
+}
+
+int microshell_help(int argc, const char** argv)
+{
+    const char banner[] = "\n"
+                          "\n"
+                          "AUTHOR: ALeksander Salyga"
+                          "\n"
+                          "\n"
+                          KGRN "commands: \n" KNRM
+                          "  1. cd\n"
+                          "  2. help\n"
+                          "  3. exit\n"
+                          "  4. ls\n"
+                          "  5. history\n"
+                          "  6. mkdir\n"
+                          "\n\n"
+                          KGRN "others: \n" KNRM
+                          "  1. CTRL Z handling\n"
+                          "  2. ~ expands to home directory\n"
+                          "  3. basic quote handling\n";
+
+    fprintf(stdout, "%s", banner);
+    return 0;
+}
+
+
+int microshell_history(int argc, const char** argv)
+{
+    fprintf(stdout, "%4d  ", 1);
+    for (int i = 0, j = 1; i < context()->history_index; ++i) {
+        if (context()->history[i] == '\0' && i+1 < context()->history_index) {
+            fprintf(stdout, "%4d  ", ++j);
+        } else {
+            fprintf(stdout, "%c", context()->history[i]);
+        }
+    }
+    return 0;
+}
+

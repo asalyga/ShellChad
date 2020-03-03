@@ -277,3 +277,56 @@ int microshell_history(int argc, const char** argv)
     return 0;
 }
 
+void list_directory_files(const char* path)
+{
+    DIR* dir = opendir(path);
+    if (!dir) {
+        MICROSHELL_ERROR("list files: %s", strerror(errno))
+        exit(1);
+    }
+    struct dirent *entry;
+    while((entry = readdir(dir))) {
+        char* full_path = path_concat(path, entry->d_name);
+        if (is_directory(full_path))
+            fprintf(stdout, KGRN "    %s\n" KNRM, entry->d_name);
+        else
+            fprintf(stdout, "    %s\n", entry->d_name);
+        free(full_path);
+    }
+    closedir(dir);
+}
+
+
+int is_directory(const char *path) {
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0)
+        return 0;
+    return S_ISDIR(statbuf.st_mode);
+}
+
+int microshell_ls(int argc, const char** argv) {
+   
+    if (argc == 0) {
+        list_directory_files(&context()->cwd[0]);
+        return 0;
+    }
+
+    for (int i = 0; i < argc; ++i) {
+        char* path = expand_path(argv[i]);
+
+        if (!path_exists(path)) {
+            MICROSHELL_ERROR("ls: %s: %s", path, strerror(errno))
+            free(path);
+            continue;
+        }
+
+        if (is_directory(path)) {
+            fprintf(stdout, "\n%s: \n", path);
+            list_directory_files(path);
+        } else {
+            fprintf(stdout, "\n%s\n", path);
+        }
+        free(path);
+    }
+    return 0;
+}
